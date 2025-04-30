@@ -48,10 +48,15 @@ Prophet + light gbm (rolling window)
 ## Résultats
 
 Model 1
+
 ![1](https://github.com/user-attachments/assets/e0ecb7ff-1b8b-4706-bd13-6734e2915f8d)
+
 Model 2
+
 ![2](https://github.com/user-attachments/assets/88e9e521-9191-48d6-8d91-9676ab5af81c)
+
 Model 3
+
 ![3](https://github.com/user-attachments/assets/6d1d6657-7ba5-41b5-ab5c-e9c00218b139)
 
 ## Licence
