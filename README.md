@@ -1,6 +1,10 @@
 # Manoaloa 
 
-**Manoaloa** utilise des techniques de machine pour prévoir l'évolution du co2 dans l'autmosphere. Les données prevenant de l'observatoir astronomique du gouvernement Américain. Dans ce projet nous esseyerons 3 Models hybrides differents. Certeins avec la technique iterative forecast d'autre à travers la technique du rolling window.
+**Manoaloa** utilise des techniques de machine pour prévoir l'évolution du co2 dans l'autmosphere. 
+
+Les données prevenant de l'observatoir astronomique du gouvernement Américain. 
+
+Dans ce projet nous esseyerons 3 Models hybrides differents. Certeins avec la technique iterative forecast d'autre à travers la technique du rolling window.
 
 ## Table des matières
 1. [Présentation](#présentation)
@@ -12,7 +16,7 @@
 7. [Licence](#licence)
 
 ## Données
-- **Source** : USFS Region 2 Resource Information System
+- **Source** : Global Monitoring Laboratory, accessible via ce lien https://gml.noaa.gov/ccgg/trends/data.html
 
 | Nom de la variable             | Type de donnée | Unité / Mesure                 | Description                                                               |
 |--------------------------------|----------------|--------------------------------|---------------------------------------------------------------------------|
