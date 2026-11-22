@@ -1,68 +1,68 @@
-# Manoaloa 
+# Manoaloa — prévision hebdomadaire du CO₂ atmosphérique (Mauna Loa)
 
-**Manoaloa** utilise des techniques de machine pour prévoir l'évolution du co2 dans l'autmosphere. 
+Projet d'école (2025). Trois modèles hybrides de prévision sur la série hebdomadaire de CO₂ mesurée à l'observatoire de Mauna Loa (NOAA), comparés à leurs composantes seules par MAE et RMSE.
 
-Les données prevenant de l'observatoir astronomique du gouvernement Américain. 
-
-Dans ce projet nous esseyerons 3 Models hybrides differents. Certeins avec la technique iterative forecast d'autre à travers la technique du rolling window.
-
-## Table des matières
-1. [Présentation](#présentation)
-2. [Données](#données)
-3. [Structure du projet](#structure-du-projet)
-4. [Installation & Usage](#installation--usage)
-5. [Modèles entraînés](#modèles-entraînés)
-6. [Résultats](#résultats)
-7. [Licence](#licence)
-
-## Données
-- **Source** : Global Monitoring Laboratory, accessible via ce lien https://gml.noaa.gov/ccgg/trends/data.html
-
-| Nom de la variable             | Type de donnée | Unité / Mesure                 | Description                                                               |
-|--------------------------------|----------------|--------------------------------|---------------------------------------------------------------------------|
-| `year_month_day`               | Qualitatif     | Date (YYYY-MM-DD)               | Date précise de l’observation                                           |
-| `year`                         | Quantitatif    | —                              | Année de l’observation (ex. 1975)                                        |
-| `month`                        | Quantitatif    | —                              | Mois de l’observation (1 = janvier, …, 12 = décembre)                    |
-| `day`                          | Quantitatif    | —                              | Jour du mois de l’observation                                            |
-| `year_decimal`                 | Quantitatif    | Années décimales               | Année exprimée en fraction décimale (p. ex. 1975.3959)                   |
-| `co2`                          | Quantitatif    | ppm                            | Concentration de CO₂ mesurée (parties par million)                       |
-| `days`                         | Quantitatif    | Jours                          | Nombre de jours écoulés depuis la mesure précédente                      |
-| `1 yr ago`                     | Quantitatif    | ppm                            | Valeur de CO₂ mesurée exactement un an avant                             |
-| `since 1800`                   | Quantitatif    | ppm                            | Écart de la concentration de CO₂ par rapport à la valeur de 1800 (baseline) |
-
-
-## Structure du projet
-├── manoaloa_durante_flavio.ipynb # Full project, EDA + Models 
-
-## Installation & Usage
-```bash
-git clone https://…/Manoaloa.git
-
-```
-
-## Modèles entraînés
-Logistic Regression
-
-AR + RF sur Residus (iterative forecast)
-
-ES + LR -> Meta model (LR)
-
-Prophet + light gbm (rolling window)
+Tout le travail est dans un seul notebook : [`manoaloa_durante_flavio.ipynb`](manoaloa_durante_flavio.ipynb) (exploration, modèles, évaluation).
 
 ## Résultats
 
-Model 1
+Erreurs en ppm de CO₂, lues dans les sorties du notebook. Plus bas = mieux.
 
-![1](https://github.com/user-attachments/assets/e0ecb7ff-1b8b-4706-bd13-6734e2915f8d)
+| Modèle | Découpage | Mode de prévision | MAE | RMSE |
+|---|---|---|---|---|
+| **1.** AR(14) saisonnier seul | 70 % train / 30 % test | multi-pas sur toute la période de test | 5,54 | 6,49 |
+| **1.** AR(14) + Random Forest sur les résidus | idem | idem | 5,74 | 6,66 |
+| **2.** Lissage exponentiel (Holt-Winters, saison 52 semaines) seul | 50 % / 25 % validation / 25 % test | multi-pas | **1,89** | **2,27** |
+| **2.** Régression linéaire (mois en one-hot, termes polynomiaux) seule | idem | multi-pas | 4,34 | 5,05 |
+| **2.** Méta-modèle linéaire sur les deux précédents | idem | multi-pas | 3,50 | 4,04 |
+| **3.** LightGBM sans les sorties de Prophet | 50 % / 25 % / 25 % | **un pas en avant**, réentraîné à chaque semaine | 2,28 | 2,52 |
+| **3.** LightGBM avec la tendance et la prévision de Prophet en variables | idem | idem | 0,76 | 0,98 |
 
-Model 2
+Ce que ces chiffres montrent :
 
-![2](https://github.com/user-attachments/assets/88e9e521-9191-48d6-8d91-9676ab5af81c)
+- **Modèle 1** : corriger l'AR par une forêt aléatoire entraînée sur ses résidus n'améliore pas la prévision (5,74 contre 5,54).
+- **Modèle 2** : le méta-modèle fait mieux que la régression linéaire, mais **moins bien que le lissage exponentiel seul** (3,50 contre 1,89). Sur cette série, combiner n'a pas payé.
+- **Modèle 3** : ajouter la tendance de Prophet en variable divise l'erreur du LightGBM par trois (0,76 contre 2,28).
 
-Model 3
+Prévisions comparées à la série observée, une figure par modèle :
 
-![3](https://github.com/user-attachments/assets/6d1d6657-7ba5-41b5-ab5c-e9c00218b139)
+| Modèle 1 | Modèle 2 | Modèle 3 |
+|---|---|---|
+| ![Modèle 1](https://github.com/user-attachments/assets/e0ecb7ff-1b8b-4706-bd13-6734e2915f8d) | ![Modèle 2](https://github.com/user-attachments/assets/88e9e521-9191-48d6-8d91-9676ab5af81c) | ![Modèle 3](https://github.com/user-attachments/assets/6d1d6657-7ba5-41b5-ab5c-e9c00218b139) |
+
+## Limites
+
+- **Les lignes ne sont pas comparables entre modèles.** Les découpages diffèrent (le test du modèle 1 commence plus tôt que celui des modèles 2 et 3), et le modèle 3 prévoit une seule semaine à la fois en voyant les valeurs réelles jusqu'à la veille, alors que les modèles 1 et 2 prévoient toute la période d'un coup. Le 0,76 du modèle 3 ne veut donc pas dire qu'il est le meilleur.
+- Aucune référence naïve (même semaine l'année précédente, ou dernière valeur) n'a été calculée : on ne sait pas de combien chaque modèle bat la solution la plus simple.
+- Un seul découpage train / test par modèle, sans validation glissante ni intervalle de confiance sur les erreurs.
+- Le notebook a été exécuté dans le désordre par endroits (la comparaison avec et sans Prophet réutilise une prévision calculée plus tôt) : une ré-exécution de haut en bas peut donner des chiffres légèrement différents.
+
+## Données
+
+- **Source** : NOAA Global Monitoring Laboratory, [Trends in Atmospheric CO₂](https://gml.noaa.gov/ccgg/trends/data.html), fichier hebdomadaire de Mauna Loa (`co2_weekly_mlo.txt`), téléchargé par le notebook.
+- **Période** : à partir de mai 1975, une valeur par semaine.
+- **Nettoyage** : valeurs manquantes complétées par la valeur précédente, colonne `10 yr ago` retirée.
+
+| Variable | Unité | Description |
+|---|---|---|
+| `year`, `month`, `day` | — | Date de la mesure |
+| `year_decimal` | années | Date en année décimale (ex. 1975,3959) |
+| `co2` | ppm | Concentration moyenne de la semaine (variable prévue) |
+| `days` | jours | Nombre de jours de mesure dans la semaine |
+| `1 yr ago` | ppm | Valeur un an plus tôt |
+| `since 1800` | ppm | Écart avec le niveau préindustriel |
+
+## Reproduire
+
+```bash
+git clone https://github.com/FlavioDurante/Manoaloa.git
+cd Manoaloa
+pip install pandas numpy matplotlib seaborn statsmodels scikit-learn lightgbm prophet
+jupyter lab manoaloa_durante_flavio.ipynb
+```
+
+Les versions des bibliothèques n'ont pas été figées au moment du projet.
 
 ## Licence
-Ce projet est sous licence MIT.
 
+MIT, voir [`LICENSE`](LICENSE). Données : NOAA GML, libres de réutilisation avec citation de la source.
